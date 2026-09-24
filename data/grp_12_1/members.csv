@@ -1,0 +1,13 @@
+id,first_name,last_name,dob,employer,hire_date,state,zip_code,enrolled_plan
+grp_12_1_m000,Skyler,Moreau,1995-05-16,grp_12_1,2020-08-16,PA,19103,plan_silver
+grp_12_1_m001,Alex,Chen,1990-01-10,grp_12_1,2020-12-04,PA,19103,plan_gold
+grp_12_1_m002,Alex,Moreau,1989-02-02,grp_12_1,2019-11-07,PA,19103,
+grp_12_1_m003,Parker,Haddad,2003-12-18,grp_12_1,2020-01-02,PA,19103,plan_gold
+grp_12_1_m004,Parker,Silva,1975-04-17,grp_12_1,2018-05-28,PA,19103,plan_gold
+grp_12_1_m005,Cameron,Moreau,1985-03-05,grp_12_1,2025-07-14,PA,19103,plan_silver
+grp_12_1_m006,Cameron,Haddad,1978-02-04,grp_12_1,2024-01-05,PA,19103,
+grp_12_1_m007,Cameron,Novak,1993-04-12,grp_12_1,2022-01-24,PA,19103,plan_bronze
+grp_12_1_m008,Alex,Kowalski,1967-06-19,grp_12_1,2020-03-04,PA,19103,plan_bronze
+grp_12_1_m009,Reese,Lindqvist,1970-03-16,grp_12_1,2019-09-15,PA,19103,
+grp_12_1_m010,Sam,Novak,1991-03-25,grp_12_1,2023-01-22,PA,19103,plan_gold
+grp_12_1_m011,Avery,Chen,1999-08-27,grp_12_1,2022-11-28,PA,19103,plan_gold

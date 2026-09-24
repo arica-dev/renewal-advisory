@@ -1,0 +1,14 @@
+id,member,first_name,last_name,dob,member_relationship
+grp_12_1_m004_c0,grp_12_1_m004,Rowan,Silva,2018-08-06,child
+grp_12_1_m004_c1,grp_12_1_m004,Parker,Silva,2025-03-22,child
+grp_12_1_m004_c2,grp_12_1_m004,Taylor,Silva,2005-09-27,child
+grp_12_1_m004_c3,grp_12_1_m004,Quinn,Silva,2005-10-31,child
+grp_12_1_m006_c0,grp_12_1_m006,Reese,Haddad,2001-11-17,child
+grp_12_1_m006_c1,grp_12_1_m006,Taylor,Haddad,2011-10-10,child
+grp_12_1_m006_c2,grp_12_1_m006,Cameron,Haddad,2009-06-25,child
+grp_12_1_m006_c3,grp_12_1_m006,Alex,Haddad,2010-05-06,child
+grp_12_1_m007_sp,grp_12_1_m007,Alex,Novak,1995-03-31,spouse
+grp_12_1_m010_sp,grp_12_1_m010,Reese,Novak,1990-07-08,spouse
+grp_12_1_m010_c0,grp_12_1_m010,Drew,Novak,2016-05-11,child
+grp_12_1_m010_c1,grp_12_1_m010,Alex,Novak,2016-09-05,child
+grp_12_1_m010_c2,grp_12_1_m010,Casey,Novak,2015-03-26,child
