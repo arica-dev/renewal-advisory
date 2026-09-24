@@ -33,15 +33,18 @@ npm install
 npm run dev
 ```
 
-## Deploy (Vercel)
+## Deploy (Vercel, two projects from this repo)
 
-1. Push to GitHub, then on vercel.com: **Add New → Project →** import the repo.
-   Framework: Next.js (auto-detected). No settings to change.
-2. Vercel builds the Next.js app and deploys `api/index.py` as a Python
-   function (dependencies from `requirements.txt`; `vercel.json` bundles
-   `src/` and `data/` with it). `next.config.ts` routes `/api/*` to it.
-3. Alternative: host the API elsewhere (Render, Railway) with
-   `uvicorn api.index:app` and set `API_URL` in Vercel's environment variables.
+Vercel runs one framework per project, so the API and the web app are two
+projects pointing at the same GitHub repo.
+
+1. **API:** Add New → Project → import the repo. Framework Preset: **FastAPI**.
+   Name it e.g. `renewal-advisory-api`. Vercel finds the app through
+   `[tool.vercel] entrypoint` in `pyproject.toml`. Check
+   `https://<api>.vercel.app/api/health` returns `{"ok":true}`.
+2. **Web:** the Next.js project. Settings → Environment Variables → add
+   `API_URL` = `https://<api>.vercel.app`, then redeploy. `next.config.ts`
+   proxies `/api/*` to it, so the browser never talks to the API directly.
 
 ## Layout
 

@@ -3,11 +3,12 @@ name = "renewal-advisor"
 version = "0.1.0"
 description = "Small-group health renewal advisor POC"
 requires-python = ">=3.11"
-dependencies = ["pydantic>=2.6", "pandas>=2.1"]
+# Core deps = what the deployed API needs (Vercel may install from this file).
+dependencies = ["pydantic>=2.6", "fastapi>=0.110", "pdfplumber>=0.11", "reportlab>=4.0"]
 
 [project.optional-dependencies]
-app = ["streamlit>=1.35", "plotly>=5.20", "pdfplumber>=0.11", "anthropic>=0.40"]
-web = ["fastapi>=0.110", "uvicorn>=0.30", "pdfplumber>=0.11", "reportlab>=4.0"]
+app = ["streamlit>=1.35", "plotly>=5.20", "pandas>=2.1", "anthropic>=0.40"]
+web = ["uvicorn>=0.30"]
 dev = ["pytest>=8", "reportlab>=4.0", "httpx>=0.27"]
 
 [build-system]
@@ -20,3 +21,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+# Vercel API project (Framework Preset: FastAPI) serves this app.
+[tool.vercel]
+entrypoint = "api.index:app"
