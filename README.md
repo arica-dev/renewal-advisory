@@ -1,60 +1,65 @@
-# Renewal Advisor (POC)
+# Renewal Advisor
 
-A small-group health insurance renewal advisor for brokers. It breaks a renewal
-increase into **carrier rate change vs. the group getting older**, benchmarks
-the rate part against the carrier's **public rate filing**, and (next) recommends
-the plan + contribution mix that meets the employer's budget.
+A small-group health insurance renewal advisor for benefits brokers. For each
+renewing group it:
 
-Data models mirror [Clasp's API](https://docs.withclasp.com/) field names
-(members, dependents, plans, `premium_type`, `coverage_type`, `benefit_split`
-contribution strategies, 21-year-old base rate for age-banded tables).
+1. **Breaks the increase down** into the carrier's rate change vs. employees
+   aging into older ACA age bands (the two add up exactly).
+2. **Benchmarks the rate change** against real 2027 Pennsylvania small-group
+   rate filings (market median, or a specific carrier's filing and product range).
+3. **Recommends options** (plan design x employer contribution) that meet the
+   employer's budget and a cap on any employee's increase.
+4. **Drafts a push-back brief** to the carrier, as a PDF or email.
 
-All people, plans and rates are synthetic and illustrative.
+Data models mirror [Clasp's API](https://docs.withclasp.com/) field names.
+Independent concept, not affiliated with Clasp. All people, plans and renewal
+rates are synthetic; filings are real (see `data/rate_filings/`).
 
-## Quick start
+![Renewal Advisor](docs/screenshot-web.png)
+
+## Run it locally
+
+Two terminals, both in this folder:
 
 ```bash
+# 1. Python API (http://127.0.0.1:8000, docs at /api/docs)
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev,app]"
-pytest                      # 41 tests
-python scripts/demo.py      # terminal demo: sample groups of 12, 30, 45
-streamlit run app.py        # the web app (opens in your browser)
+pip install -e ".[dev,web]"
+python -m pytest
+npm run api
+
+# 2. Web app (http://localhost:3000)
+npm install
+npm run dev
 ```
 
-![Renewal Advisor](docs/screenshot.png)
+## Deploy (Vercel)
 
-To regenerate the sample renewal notices: `python scripts/make_renewal_pdfs.py`.
+1. Push to GitHub, then on vercel.com: **Add New → Project →** import the repo.
+   Framework: Next.js (auto-detected). No settings to change.
+2. Vercel builds the Next.js app and deploys `api/index.py` as a Python
+   function (dependencies from `requirements.txt`; `vercel.json` bundles
+   `src/` and `data/` with it). `next.config.ts` routes `/api/*` to it.
+3. Alternative: host the API elsewhere (Render, Railway) with
+   `uvicorn api.index:app` and set `API_URL` in Vercel's environment variables.
 
 ## Layout
 
-```
+```text
+app/                     Next.js pages: inbox, group analysis, brief, filings
+components/, lib/        UI components, API client and formatting
+api/index.py             FastAPI endpoints
 src/renewal_advisor/
-  models.py         Pydantic models (Clasp-shaped)
-  age_curve.py      Federal default ACA age curve + age calculation
-  rating.py         Per-person age rating, 3-oldest-children-under-21 rule
-  renewal.py        Exact rate-vs-aging breakdown + benchmark vs filings
-  contributions.py  Employer/employee split (benefit_split strategy)
-  scenarios.py      Scenario engine: price options, compare vs. today
-  recommender.py    Goal-constrained search over plan designs x contributions
-  census.py         Synthetic census generator + CSV read/write
-  filings.py        Public rate filings + push-back benchmark
-  ingest.py         Renewal PDF parsing, census CSV upload, Claude fallback
-app.py              Streamlit front-end
-scripts/demo.py     Terminal demo
-scripts/make_renewal_pdfs.py  Sample renewal notice PDFs
-tests/              Hand-computed cases + invariants
-docs/               Data sources and next steps
+  service.py             What the API returns (plain dicts)
+  models.py              Pydantic models (Clasp-shaped)
+  age_curve.py           Federal default ACA age curve
+  rating.py              Per-person age rating, 3-oldest-children-under-21 rule
+  renewal.py             Exact rate-vs-aging breakdown
+  filings.py             Rate filings + push-back benchmark
+  scenarios.py           Price options, compare vs. today
+  recommender.py         Goal-constrained search over designs x contributions
+  census.py, ingest.py   Synthetic census, renewal PDF parsing
+streamlit_app.py         Earlier Streamlit prototype (python -m streamlit run streamlit_app.py)
+tests/                   Hand-computed cases, invariants, API contract
+data/                    Sample census + renewal PDFs, 2027 PA filings
 ```
-
-## Status
-
-| Build-plan day | Status |
-| --- | --- |
-| 1. Data models on Clasp field names | Done |
-| 1. Confirm filing data for one state | Done: all 16 PA small-group 2027 filings |
-| 2. Census generator + age-rated premium engine | Done, tested |
-| 3. Scenario engine + rate-vs-aging breakdown | Done, tested |
-| 4. Benchmark against filings | Done, tested |
-| 5. Goal-constrained recommender | Done, tested |
-| 6. Streamlit UI + PDF extraction | Done, tested |
-| 7. Polish, verify, Loom | Next |

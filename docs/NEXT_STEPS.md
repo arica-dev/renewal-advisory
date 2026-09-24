@@ -41,8 +41,9 @@
 ## Day 7: polish and ship
 - [x] Real filings in the app: market median + range, or a specific carrier's
       average + product range, cited with source and retrieval date.
-- [ ] Push to GitHub, deploy free on Streamlit Community Cloud
-      (share.streamlit.io, uses requirements.txt), and send Zach the link.
+- [x] Push to GitHub.
+- [x] Real front end: Next.js app + FastAPI (inbox, analysis, brief, filings).
+- [ ] Deploy on Vercel (README) and click through the live link.
 - [ ] Record a 2-minute Loom: breakdown -> benchmark -> recommendation.
 - [ ] Optional: AI-drafted client memo from the computed numbers.
 
