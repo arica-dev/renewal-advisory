@@ -1,0 +1,9 @@
+# Visual style inspired by Clasp's site (forest green + mint, clean grotesk type).
+# Independent concept: no Clasp logo, name or licensed fonts are used.
+[theme]
+base = "light"
+primaryColor = "#2D553E"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F2F7F3"
+textColor = "#18261E"
+font = "sans serif"

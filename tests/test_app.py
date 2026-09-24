@@ -29,4 +29,5 @@ def test_app_benchmarks_against_a_specific_carrier():
     at = AppTest.from_file(APP, default_timeout=60).run()
     at.sidebar.selectbox[0].set_value("Highmark Coverage Advantage Inc.").run()
     assert not at.exception
-    assert any("Strong case to push back" in i.value for i in at.info)  # 18% > 13.59% top of range
+    html = " ".join(m.value for m in at.markdown)
+    assert "Strong case to push back" in html  # 18% > 13.59% top of range

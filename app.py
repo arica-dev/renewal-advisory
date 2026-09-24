@@ -26,7 +26,11 @@ from renewal_advisor.filings import (SOURCE_URL, against_carrier, against_market
 from renewal_advisor.renewal import break_down_renewal  # noqa: E402
 from renewal_advisor.scenarios import accept_renewal, baseline, compare, evaluate  # noqa: E402
 
-SERIES = "#2a78d6"      # categorical slot 1 (reference palette)
+# Palette inspired by Clasp's site: forest green + mint on white.
+GREEN = "#2D553E"       # primary / bars
+DEEP = "#1F3D2C"        # hero background
+MINT = "#D0FAE2"        # accents on dark
+SERIES = GREEN
 MUTED = "#8a8984"       # reference lines
 SAMPLES = {"Sample Co (12 employees)": (12, 1), "Sample Co (30 employees)": (30, 2),
            "Sample Co (45 employees)": (45, 3)}
@@ -34,6 +38,37 @@ GOAL_LABELS = {"employer_increase_pct": "employer goal by {:.2f} pts",
                "employee_monthly_increase": "employee cap by ${:,.2f}/mo"}
 
 st.set_page_config(page_title="Renewal Advisor", layout="wide")
+st.markdown(f"""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap');
+html, body, p, li, label, input, textarea, h1, h2, h3,
+[data-testid="stMarkdownContainer"], [data-testid="stMetricValue"],
+[data-testid="stMetricLabel"], [data-testid="stCaptionContainer"] {{
+  font-family: 'DM Sans', system-ui, sans-serif;
+}}
+h1, h2, h3 {{ font-weight: 500 !important; letter-spacing: -0.01em; color: {DEEP}; }}
+.block-container {{ padding-top: 3.5rem; max-width: 1200px; }}
+.callout {{ background:#EAF8EF; border:1px solid #CFEBD9; border-left:4px solid {GREEN};
+  border-radius:14px; padding:14px 18px; color:#18261E; margin:6px 0 4px; line-height:1.5; }}
+.callout b.head {{ color:{GREEN}; }}
+.hero {{
+  background: radial-gradient(120% 140% at 85% 0%, #2f6247 0%, {DEEP} 55%, #152b1f 100%);
+  border-radius: 20px; padding: 28px 32px; margin-bottom: 8px; color: #fff;
+}}
+.hero .eyebrow {{ display:inline-block; background:{MINT}; color:{DEEP}; border-radius:999px;
+  padding:3px 12px; font-size:12px; font-weight:700; letter-spacing:.02em; }}
+.hero h1 {{ color:#fff !important; font-size:40px; margin:12px 0 4px; padding:0; }}
+.hero p {{ color:{MINT}; margin:0; font-size:15px; opacity:.9; }}
+[data-testid="stMetric"] {{ background:#F2F7F3; border:1px solid #E1ECE4; border-radius:14px;
+  padding:14px 16px; }}
+[data-testid="stAlert"] {{ border-radius:14px; }}
+[data-testid="stSidebar"] {{ background:#F2F7F3; }}
+[data-testid="stSidebar"] h2 {{ font-size:15px; text-transform:uppercase; letter-spacing:.06em;
+  color:{GREEN}; }}
+button[kind] {{ border-radius:999px !important; }}
+[data-testid="stDataFrame"], [data-testid="stExpander"] {{ border-radius:14px; }}
+</style>
+""", unsafe_allow_html=True)
 
 
 def money(x, decimals=0) -> str:
@@ -129,7 +164,11 @@ with st.spinner("Searching options..."):
     rec = recommend(group, current, renewal_rates, renewal_date, goals, objective=objective)
 
 # ------------------------------------------------------------------- main ---
-st.title("Renewal Advisor")
+st.markdown(
+    '<div class="hero"><span class="eyebrow">Concept for small-group brokers</span>'
+    '<h1>Renewal Advisor</h1>'
+    '<p>See what is driving a renewal, whether to push back, and which option fits the '
+    'budget.</p></div>', unsafe_allow_html=True)
 st.caption(f"{group.name} · {len(group.enrolled_members)} enrolled · {notice.carrier} renewal "
            f"effective {renewal_date:%b %d, %Y} · synthetic data for demonstration")
 
@@ -140,7 +179,7 @@ m2.metric("At renewal", money(breakdown.renewal_monthly), f"{breakdown.total_pct
           delta_color="inverse")
 m3.metric("From employees aging", money(breakdown.aging_effect), f"{breakdown.aging_pct:+} pts",
           delta_color="off")
-m4.metric("From the carrier's rate change", money(breakdown.rate_effect),
+m4.metric("From the rate change", money(breakdown.rate_effect),
           f"{breakdown.rate_pct:+} pts", delta_color="off")
 
 kind = "requested" if bench.requested else "approved"
@@ -151,16 +190,19 @@ ref_txt = (f"{bench.reference_pct}% median {kind} increase across Pennsylvania s
            f"carriers" if compare_to == MARKET else
            f"{bench.reference_pct}% average {kind} increase in {bench.against}'s filing")
 if bench.verdict == "above_range":
-    st.info(f"**Strong case to push back.** With aging removed, this renewal raises rates "
-            f"**{bench.group_rate_pct}%**. That's above the {ref_txt} and above the top of the "
-            f"range ({range_txt}).", icon=":material/balance:")
+    head = "Strong case to push back."
+    body = (f"With aging removed, this renewal raises rates <b>{bench.group_rate_pct}%</b>. "
+            f"That's above the {ref_txt} and above the top of the range ({range_txt}).")
 elif bench.verdict == "above_average":
-    st.info(f"**Room to push back.** With aging removed, this renewal raises rates "
-            f"**{bench.group_rate_pct}%**, **{bench.gap_pct} points** above the {ref_txt} "
-            f"({range_txt}).", icon=":material/balance:")
+    head = "Room to push back."
+    body = (f"With aging removed, this renewal raises rates <b>{bench.group_rate_pct}%</b>, "
+            f"<b>{bench.gap_pct} points</b> above the {ref_txt} ({range_txt}).")
 else:
-    st.info(f"With aging removed, this renewal raises rates **{bench.group_rate_pct}%**, at or "
-            f"below the {ref_txt} ({range_txt}).", icon=":material/check_circle:")
+    head = "In line with the filings."
+    body = (f"With aging removed, this renewal raises rates <b>{bench.group_rate_pct}%</b>, at or "
+            f"below the {ref_txt} ({range_txt}).")
+st.markdown(f'<div class="callout"><b class="head">{head}</b> {body}</div>',
+            unsafe_allow_html=True)
 st.caption(f"Source: [ratereview.healthcare.gov]({SOURCE_URL}), Pennsylvania small group, plan "
            f"year 2027, retrieved Sep 24, 2026. Filed rates are {kind}; regulators often approve "
            f"less. A filed average is a benchmark, not proof about one group's renewal.")
@@ -206,7 +248,7 @@ fig = go.Figure(go.Bar(
     textfont=dict(color="white"),
     customdata=hover, hovertemplate="<b>%{x}</b><br>%{customdata}<br>%{y:$,.0f} / yr<extra></extra>"))
 fig.add_hline(y=budget, line=dict(color=MUTED, dash="dash", width=1.5), layer="below")
-fig.update_layout(title=f"Employer cost per year (dashed line = budget, today "
+fig.update_layout(font=dict(family="DM Sans, system-ui, sans-serif"), title=f"Employer cost per year (dashed line = budget, today "
                         f"+{goals.max_employer_increase_pct}%)", height=380, margin=dict(t=60, b=20, l=10, r=10),
                   yaxis=dict(tickformat="$,.0f", gridcolor="rgba(128,128,128,0.15)",
                              range=[0, max(values + [budget]) * 1.15]),
@@ -247,3 +289,8 @@ with st.expander("How this works"):
         "employer % for employee-only x employer % with dependents, in 5% steps, keeps those that "
         "meet the goals, and picks the best within each design.\n"
         "- All math is deterministic Python; field names follow Clasp's API.")
+
+st.divider()
+st.caption("Independent concept built on public data and Clasp's public API docs. "
+           "Not affiliated with or endorsed by Clasp. All people, plans and renewal rates are "
+           "synthetic.")
