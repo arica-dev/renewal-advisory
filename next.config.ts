@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 // /api/* is served by the Python API (api/index.py).
 // - Local dev: `npm run api` starts it on :8000 and this rewrite proxies to it.
-// - Vercel: api/index.py deploys as a Python function; requests go to /api/.
+// - Vercel: vercel.json routes /api/* straight to the Python function, so
+//   Next.js must NOT rewrite it (that sent requests to Next's own 500 page).
 // - Hosting the API elsewhere: set API_URL (e.g. https://my-api.onrender.com).
 const apiUrl =
   process.env.API_URL ??
@@ -10,12 +11,7 @@ const apiUrl =
 
 const nextConfig: NextConfig = {
   async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: apiUrl ? `${apiUrl}/api/:path*` : "/api/",
-      },
-    ];
+    return apiUrl ? [{ source: "/api/:path*", destination: `${apiUrl}/api/:path*` }] : [];
   },
 };
 
