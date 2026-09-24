@@ -13,23 +13,16 @@ States with their own curve (DC, MA, MN, NJ, OR, UT) or no age rating
 Pennsylvania is the working default: close to Clasp (NYC) and on the default
 curve. Confirm before relying on it.
 
-## Carrier rate filings (your step, day 1)
-CMS publishes Unified Rate Review data as public-use CSVs (plan years
-2014-2026), covering single-risk-pool filings, which include small group:
+## Carrier rate filings (done)
+`data/rate_filings/pa_small_group_2027.csv` holds all 16 Pennsylvania
+small-group filings for plan year 2027 from https://ratereview.healthcare.gov/,
+retrieved 2026-09-24. All are *requested* changes (status "Submission Filed");
+final rates weren't published yet. Median requested increase: 14.47%
+(range 3.74% to 28.38%). See data/rate_filings/README.md.
+
+CMS also publishes the underlying Unified Rate Review data as CSVs:
 https://www.cms.gov/marketplace/resources/data/rate-review-data
-Search tool: https://ratereview.healthcare.gov/
-
-Useful Worksheet 2 fields (per URRT instructions):
-- "Cumulative Rate Change % (over 12 months prior)" by plan
-- "Product Rate Increase %" and "Submission Level Rate Increase %"
-
-To do:
-1. Download the latest ZIP, filter to your state + market = small group.
-2. Pick one carrier and note its submission-level and product-level increase.
-3. Put that number in `FILED_AVG_PCT` in scripts/demo.py (now a placeholder).
-
-Caveat: small-group carriers can file quarterly changes, and a filed average
-is market-wide. Present it as a benchmark, not proof.
+Re-check when final rates are posted, and fill in `final_pct`.
 
 ## Clasp API (field names used)
 - Members: https://docs.withclasp.com/api-reference/members/post-members.md

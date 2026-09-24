@@ -15,10 +15,15 @@ All people, plans and rates are synthetic and illustrative.
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-pytest                      # 13 tests
-python scripts/demo.py      # sample groups of 12, 30, 45 + renewal breakdown
+pip install -e ".[dev,app]"
+pytest                      # 41 tests
+python scripts/demo.py      # terminal demo: sample groups of 12, 30, 45
+streamlit run app.py        # the web app (opens in your browser)
 ```
+
+![Renewal Advisor](docs/screenshot.png)
+
+To regenerate the sample renewal notices: `python scripts/make_renewal_pdfs.py`.
 
 ## Layout
 
@@ -29,8 +34,14 @@ src/renewal_advisor/
   rating.py         Per-person age rating, 3-oldest-children-under-21 rule
   renewal.py        Exact rate-vs-aging breakdown + benchmark vs filings
   contributions.py  Employer/employee split (benefit_split strategy)
+  scenarios.py      Scenario engine: price options, compare vs. today
+  recommender.py    Goal-constrained search over plan designs x contributions
   census.py         Synthetic census generator + CSV read/write
-scripts/demo.py     End-to-end demo
+  filings.py        Public rate filings + push-back benchmark
+  ingest.py         Renewal PDF parsing, census CSV upload, Claude fallback
+app.py              Streamlit front-end
+scripts/demo.py     Terminal demo
+scripts/make_renewal_pdfs.py  Sample renewal notice PDFs
 tests/              Hand-computed cases + invariants
 docs/               Data sources and next steps
 ```
@@ -40,10 +51,10 @@ docs/               Data sources and next steps
 | Build-plan day | Status |
 | --- | --- |
 | 1. Data models on Clasp field names | Done |
-| 1. Confirm filing data for one state | Your step, see docs/DATA_SOURCES.md |
+| 1. Confirm filing data for one state | Done: all 16 PA small-group 2027 filings |
 | 2. Census generator + age-rated premium engine | Done, tested |
-| 3. Scenario engine + rate-vs-aging breakdown | Breakdown done; scenarios next |
-| 4. Benchmark against filings | Logic done; needs real filed number |
-| 5. Goal-constrained recommender | Next |
-| 6. Streamlit UI + PDF extraction | Next |
+| 3. Scenario engine + rate-vs-aging breakdown | Done, tested |
+| 4. Benchmark against filings | Done, tested |
+| 5. Goal-constrained recommender | Done, tested |
+| 6. Streamlit UI + PDF extraction | Done, tested |
 | 7. Polish, verify, Loom | Next |
