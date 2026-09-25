@@ -9,6 +9,7 @@ import { EmployeeTable } from "@/components/EmployeeTable";
 import { GoalsPanel } from "@/components/GoalsPanel";
 import { Icon } from "@/components/Icon";
 import { OptionCard } from "@/components/OptionCard";
+import { Takeaways } from "@/components/Takeaways";
 import { Breadcrumbs, Card, ErrorState, Pill, Skeleton, VerdictPill, btn, field } from "@/components/ui";
 
 const DEFAULT_GOALS: Goals = {
@@ -85,6 +86,8 @@ export default function GroupPage() {
           </div>
         </div>
       </header>
+
+      {data.takeaways?.length > 0 && <Takeaways summary={data.summary} items={data.takeaways} />}
 
       <Card className="flex flex-col gap-5 p-6" aria-label="What's driving the increase">
         <div className="flex flex-wrap items-baseline justify-between gap-2">

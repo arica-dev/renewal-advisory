@@ -181,7 +181,7 @@ def analysis(group_id: str, *, employee_only_pct: float = 70, dependent_pct: flo
               "change_pct": f2((rates[p.id] / p.base_rate_21 - 1) * 100),
               "enrolled": sum(1 for m in g.enrolled_members if m.enrolled_plan == p.id)}
              for p in g.plans]
-    return {
+    out = {
         "group": {"id": s.id, "name": s.name, "size": s.size, "enrolled": len(g.enrolled_members),
                   "carrier": notice.carrier, "renewal_date": rdate.isoformat(),
                   "days_to_renewal": (rdate - today).days, "state": g.state, "status": s.status},
@@ -213,6 +213,105 @@ def analysis(group_id: str, *, employee_only_pct: float = 70, dependent_pct: flo
         "search": {"evaluated": rec.evaluated, "any_feasible": rec.feasible},
         "options": [_option(i, c, g, base_res, rates, rdate) for i, c in enumerate(rec.top, 1)],
     }
+    out["takeaways"] = takeaways(out)
+    out["summary"] = summary(out)
+    return out
+
+
+def _lower1(s: str) -> str:
+    return s[:1].lower() + s[1:]
+
+
+def _usd(x: float) -> str:
+    return f"${x:,.2f}" if x != int(x) else f"${x:,.0f}"
+
+
+def _contribution(o: dict) -> str:
+    eo, dep = o["employee_only_pct"], o["dependent_pct"]
+    if eo == dep:
+        return f"the employer paying {eo:g}% for every tier"
+    return f"the employer paying {eo:g}% for employee-only and {dep:g}% for family tiers"
+
+
+def summary(a: dict) -> str:
+    """One-sentence headline for the Bottom line card."""
+    bm = a["benchmark"]
+    feasible = a["search"]["any_feasible"]
+    ref = "the market" if bm["compare_to"] == MARKET else f"{bm['against']}'s filing"
+    if bm["verdict"] == "above_range":
+        return f"Push back first: the rate change is above every product in {ref}."
+    if bm["verdict"] == "above_average":
+        lead = f"Push back first: the rate change is {bm['gap_pct']:.1f} points above {ref}"
+        return lead + ("." if feasible else ", and no plan change meets the goals at this rate.")
+    return (f"The rate change is in line with {ref}, so the decision is about plan and contribution."
+            if feasible else
+            f"The rate change is in line with {ref}, and no option meets every goal yet.")
+
+
+def takeaways(a: dict) -> list[dict]:
+    """Three plain-language conclusions built only from the computed figures.
+
+    why: aging vs. rate change. fair: benchmark verdict. do: what to take to the employer.
+    """
+    b, bm, goals = a["breakdown"], a["benchmark"], a["goals"]
+    enrolled = a["group"]["enrolled"]
+    market = bm["compare_to"] == MARKET
+    ref_name = "the PA median" if market else f"{bm['against']}'s filed average"
+    filed = "requested" if bm["requested"] else "approved"
+
+    why = (f"Of the +{b['total_pct']:.1f}%, {b['aging_pct']:.1f} points is employees aging into "
+           f"higher age bands, which can't be negotiated. The other {b['rate_pct']:.1f} points "
+           f"is the carrier's rate change.")
+
+    rate = f"With aging removed, the carrier raised rates {bm['group_rate_pct']:.1f}%"
+    ref = f"{ref_name} of {bm['reference_pct']:.1f}% {filed} for 2027"
+    if bm["verdict"] == "above_range":
+        fair = (f"{rate}, above every product in {bm['against']}'s filing "
+                f"({bm['range_low_pct']:.1f}% to {bm['range_high_pct']:.1f}%).")
+    elif bm["verdict"] == "above_average":
+        fair = f"{rate}, {bm['gap_pct']:.1f} points above {ref}."
+    else:
+        where = ("in line with" if abs(bm["gap_pct"]) < 0.05
+                 else f"{abs(bm['gap_pct']):.1f} points below")
+        fair = (f"{rate}, {where} {ref}. Negotiating leverage is limited, "
+                f"so plan and contribution options matter more.")
+
+    push = bm["verdict"] != "within"
+    opts = a["options"]
+    best = opts[0] if opts else None
+    if best and best["feasible"]:
+        n = best["employees_paying_more"]
+        who = ("no employee pays more" if n == 0 else
+               f"only {n} of {enrolled} employees {'pays' if n == 1 else 'pay'} more "
+               f"(at most {_usd(best['max_employee_increase'])}/month)")
+        do = ("If the carrier won't lower the rate, the best option is to "
+              if push else "The best option is to ")
+        do += (f"{_lower1(best['design'])}, with {_contribution(best)}. That keeps the employer "
+               f"at {best['employer_change_pct']:+.1f}%, and {who}.")
+        if best["moved_to_higher_deductible"] and best["target_deductible"] is not None:
+            m = best["moved_to_higher_deductible"]
+            do += (f" The tradeoff: {m} of {enrolled} employees move to a "
+                   f"{_usd(best['target_deductible'])} deductible.")
+    else:
+        do = "No plan and contribution mix meets every goal."
+        if best:
+            misses = []
+            if "employer_increase_pct" in best["violations"]:
+                misses.append(f"leaves the employer at {best['employer_change_pct']:+.1f}% against "
+                              f"a {goals['max_employer_increase_pct']:+g}% budget")
+            if "employee_monthly_increase" in best["violations"]:
+                misses.append(f"adds up to {_usd(best['max_employee_increase'])}/month for one "
+                              f"employee against a {_usd(goals['max_employee_monthly_increase'])} cap")
+            if misses:
+                do += f" The closest option ({_lower1(best['design'])}) still {' and '.join(misses)}."
+        do += (" Negotiating the rate down is the main lever." if push
+               else " Relaxing a goal is the way to open up options.")
+
+    return [
+        {"id": "why", "title": "Why it went up", "text": why},
+        {"id": "fair", "title": "Is it fair", "text": fair},
+        {"id": "do", "title": "What to do", "text": do},
+    ]
 
 
 def _long_date(iso: str) -> str:

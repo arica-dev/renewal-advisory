@@ -87,7 +87,11 @@ export interface Analysis {
   goals: Goals;
   search: { evaluated: number; any_feasible: boolean };
   options: Option[];
+  takeaways: Takeaway[];
+  summary: string;
 }
+
+export interface Takeaway { id: "why" | "fair" | "do"; title: string; text: string }
 
 export interface Filings {
   state: string; market: string; plan_year: number; retrieved: string; source: string;
