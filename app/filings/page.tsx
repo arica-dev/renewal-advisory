@@ -27,7 +27,7 @@ export default function FilingsPage() {
         <p className="m-0 text-[13px] font-medium text-ink-2">Pennsylvania · small group · plan year 2027</p>
         <h1 className="m-0 text-[34px] font-semibold tracking-tight">Rate filings</h1>
         <p className="m-0 max-w-2xl text-sm leading-relaxed text-ink-2">
-          Every carrier&apos;s requested average rate change, the benchmark behind each push-back. All are requested
+          Every carrier&apos;s requested average rate change, the benchmark behind each renewal analysis. All are requested
           (submission filed), not final.
         </p>
       </header>

@@ -9,7 +9,7 @@ renewing group it:
    rate filings (market median, or a specific carrier's filing and product range).
 3. **Recommends options** (plan design x employer contribution) that meet the
    employer's budget and a cap on any employee's increase.
-4. **Drafts a push-back brief** to the carrier, as a PDF or email.
+4. **Drafts a client brief** for the employer, as a PDF or email.
 
 Data models mirror [Clasp's API](https://docs.withclasp.com/) field names.
 Independent concept, not affiliated with Clasp. All people, plans and renewal

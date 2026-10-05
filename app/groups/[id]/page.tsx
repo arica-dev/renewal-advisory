@@ -82,7 +82,7 @@ export default function GroupPage() {
           </div>
           <div className="flex gap-2.5">
             <button type="button" className={btn.secondary} onClick={() => window.print()}>Print summary</button>
-            <Link href={briefHref} className={btn.primary}>Draft push-back brief <Icon name="arrow" size={16} className="text-mint" /></Link>
+            <Link href={briefHref} className={btn.primary}>Draft client brief <Icon name="arrow" size={16} className="text-mint" /></Link>
           </div>
         </div>
       </header>
@@ -164,7 +164,7 @@ export default function GroupPage() {
         {!data.search.any_feasible && (
           <div role="status" className="flex items-start gap-3 rounded-2xl border border-[#F3D9B1] bg-amber-soft px-5 py-4 text-sm text-[#5C3209]">
             <Icon name="info" className="mt-0.5 text-amber" />
-            <span><b>No option meets every goal.</b> These are the closest misses. Negotiating the rate toward the benchmark, or relaxing a goal, opens up options.</span>
+            <span><b>No option meets every goal.</b> These are the closest misses. Quotes from other carriers, or relaxing a goal, open up options.</span>
           </div>
         )}
         <div className="grid gap-4 lg:grid-cols-3">

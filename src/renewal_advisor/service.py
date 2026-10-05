@@ -239,13 +239,29 @@ def summary(a: dict) -> str:
     feasible = a["search"]["any_feasible"]
     ref = "the market" if bm["compare_to"] == MARKET else f"{bm['against']}'s filing"
     if bm["verdict"] == "above_range":
-        return f"Push back first: the rate change is above every product in {ref}."
+        return f"Shop it first: the rate change is above every product in {ref}."
     if bm["verdict"] == "above_average":
-        lead = f"Push back first: the rate change is {bm['gap_pct']:.1f} points above {ref}"
+        lead = f"Shop it first: the rate change is {bm['gap_pct']:.1f} points above {ref}"
         return lead + ("." if feasible else ", and no plan change meets the goals at this rate.")
     return (f"The rate change is in line with {ref}, so the decision is about plan and contribution."
             if feasible else
             f"The rate change is in line with {ref}, and no option meets every goal yet.")
+
+
+def _option_sentence(best: dict, enrolled: int, who: str, payer: str = "the employer") -> str:
+    out = (f"{_lower1(best['design'])}, with {_contribution(best)}. That keeps {payer} "
+           f"at {best['employer_change_pct']:+.1f}%, and {who}.")
+    if best["moved_to_higher_deductible"] and best["target_deductible"] is not None:
+        out += (f" The tradeoff: {best['moved_to_higher_deductible']} of {enrolled} employees "
+                f"move to a {_usd(best['target_deductible'])} deductible.")
+    return out
+
+
+def _who_pays_more(best: dict, enrolled: int) -> str:
+    n = best["employees_paying_more"]
+    return ("no employee pays more" if n == 0 else
+            f"only {n} of {enrolled} employees {'pays' if n == 1 else 'pay'} more "
+            f"(at most {_usd(best['max_employee_increase'])}/month)")
 
 
 def takeaways(a: dict) -> list[dict]:
@@ -260,7 +276,7 @@ def takeaways(a: dict) -> list[dict]:
     filed = "requested" if bm["requested"] else "approved"
 
     why = (f"Of the +{b['total_pct']:.1f}%, {b['aging_pct']:.1f} points is employees aging into "
-           f"higher age bands, which can't be negotiated. The other {b['rate_pct']:.1f} points "
+           f"higher age bands, which applies with any carrier. The other {b['rate_pct']:.1f} points "
            f"is the carrier's rate change.")
 
     rate = f"With aging removed, the carrier raised rates {bm['group_rate_pct']:.1f}%"
@@ -273,25 +289,16 @@ def takeaways(a: dict) -> list[dict]:
     else:
         where = ("in line with" if abs(bm["gap_pct"]) < 0.05
                  else f"{abs(bm['gap_pct']):.1f} points below")
-        fair = (f"{rate}, {where} {ref}. Negotiating leverage is limited, "
+        fair = (f"{rate}, {where} {ref}. Switching carriers is unlikely to save much, "
                 f"so plan and contribution options matter more.")
 
     push = bm["verdict"] != "within"
     opts = a["options"]
     best = opts[0] if opts else None
     if best and best["feasible"]:
-        n = best["employees_paying_more"]
-        who = ("no employee pays more" if n == 0 else
-               f"only {n} of {enrolled} employees {'pays' if n == 1 else 'pay'} more "
-               f"(at most {_usd(best['max_employee_increase'])}/month)")
-        do = ("If the carrier won't lower the rate, the best option is to "
-              if push else "The best option is to ")
-        do += (f"{_lower1(best['design'])}, with {_contribution(best)}. That keeps the employer "
-               f"at {best['employer_change_pct']:+.1f}%, and {who}.")
-        if best["moved_to_higher_deductible"] and best["target_deductible"] is not None:
-            m = best["moved_to_higher_deductible"]
-            do += (f" The tradeoff: {m} of {enrolled} employees move to a "
-                   f"{_usd(best['target_deductible'])} deductible.")
+        who = _who_pays_more(best, enrolled)
+        do = ("Get quotes from other carriers. If the group stays with this carrier, the best option is to "
+              if push else "The best option is to ") + _option_sentence(best, enrolled, who)
     else:
         do = "No plan and contribution mix meets every goal."
         if best:
@@ -304,7 +311,7 @@ def takeaways(a: dict) -> list[dict]:
                               f"employee against a {_usd(goals['max_employee_monthly_increase'])} cap")
             if misses:
                 do += f" The closest option ({_lower1(best['design'])}) still {' and '.join(misses)}."
-        do += (" Negotiating the rate down is the main lever." if push
+        do += (" Quotes from other carriers are the main lever." if push
                else " Relaxing a goal is the way to open up options.")
 
     return [
@@ -324,13 +331,11 @@ def escape_markup(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def brief(group_id: str, compare_to: str = MARKET, target: str | None = None) -> dict:
-    """Numbers and text for the carrier push-back brief."""
+def brief(group_id: str, compare_to: str = MARKET) -> dict:
+    """Client-facing renewal brief: what changed, how it compares, what we recommend."""
     a = analysis(group_id, compare_to=compare_to)
     g, b, bm = a["group"], a["breakdown"], a["benchmark"]
     kind = "requested" if bm["requested"] else "approved"
-    target = target or (f"{bm['reference_pct']:.1f}% (the market median)" if bm["compare_to"] == MARKET
-                        else f"{bm['reference_pct']:.1f}% (your filed average)")
     if bm["compare_to"] == MARKET:
         context = (f"For plan year 2027, Pennsylvania small-group carriers {kind} a median increase "
                    f"of {bm['reference_pct']:.1f}% (range {bm['range_low_pct']:.1f}% to "
@@ -339,23 +344,37 @@ def brief(group_id: str, compare_to: str = MARKET, target: str | None = None) ->
         context = (f"{bm['against']}'s filing for plan year 2027 {kind} an average increase of "
                    f"{bm['reference_pct']:.1f}%, with products ranging {bm['range_low_pct']:.1f}% "
                    f"to {bm['range_high_pct']:.1f}%.")
+    shop = bm["verdict"] != "within"
+    verdict = ("Because that's above the market, we recommend getting quotes from other carriers "
+               "before you renew." if shop else
+               "That's in line with the market, so switching carriers is unlikely to save much.")
+    best = a["options"][0] if a["options"] else None
+    if best and best["feasible"]:
+        lead = (f"If you stay with {g['carrier']}, the option that best fits your budget is to "
+                if shop else "The option that best fits your budget is to ")
+        rec = lead + _option_sentence(best, g["enrolled"], _who_pays_more(best, g["enrolled"]),
+                                      payer="your cost")
+    else:
+        rec = ("No plan and contribution change meets your budget at these rates, so quotes from "
+               "other carriers are the most important next step." if shop else
+               "No plan and contribution change meets every goal at these rates. We'd like to "
+               "review the budget and goals with you.")
     paragraphs = [
         f"{g['name']}'s renewal raises monthly premium from ${b['current_monthly']:,.0f} to "
         f"${b['renewal_monthly']:,.0f}, an increase of {b['total_pct']:.1f}%. We separated the "
         f"increase into its two drivers:",
-        f"With aging removed, the base-rate change for this group is "
-        f"{b['pure_rate_change_pct']:.1f}%. {context} Filed rates may be reduced before approval.",
-        f"We ask that you review the base-rate change for this group, share the factors behind the "
-        f"portion above the benchmark, and consider revising it toward {target}.",
+        f"With aging removed, {g['carrier']}'s rate change for your group is "
+        f"{b['pure_rate_change_pct']:.1f}%. {context} {verdict}",
+        rec + " We're happy to walk through the options with you.",
     ]
     return {
-        "group": g, "breakdown": b, "benchmark": bm, "target": target,
+        "group": g, "breakdown": b, "benchmark": bm,
         "subject": f"{g['name']} · group renewal effective {_long_date(g['renewal_date'])}",
-        "title": "Request to review the base-rate change",
+        "title": "Your renewal: what changed and what we recommend",
         "table": [
             {"label": "Employees moving into older age bands", "amount": b["aging"],
              "pct": b["aging_pct"]},
-            {"label": "Base-rate change", "amount": b["rate"], "pct": b["rate_pct"]},
+            {"label": "Carrier rate change", "amount": b["rate"], "pct": b["rate_pct"]},
             {"label": "Total increase", "amount": b["total_change"], "pct": b["total_pct"]},
         ],
         "paragraphs": paragraphs,
@@ -365,7 +384,7 @@ def brief(group_id: str, compare_to: str = MARKET, target: str | None = None) ->
 
 
 def brief_pdf(data: dict, sender: str = "[Broker name], [Agency]",
-              recipient: str = "[Carrier account manager]") -> bytes:
+              recipient: str = "[Employer contact]") -> bytes:
     import io
 
     from reportlab.lib import colors

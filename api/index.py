@@ -58,17 +58,15 @@ def analysis(group_id: str,
 
 
 @app.get("/api/groups/{group_id}/brief")
-def brief(group_id: str, compare_to: str = Query(service.MARKET, max_length=120),
-          target: str | None = Query(None, max_length=80)):
-    return _guard(service.brief, group_id, compare_to, target)
+def brief(group_id: str, compare_to: str = Query(service.MARKET, max_length=120)):
+    return _guard(service.brief, group_id, compare_to)
 
 
 @app.get("/api/groups/{group_id}/brief.pdf")
 def brief_pdf(group_id: str, compare_to: str = Query(service.MARKET, max_length=120),
-              target: str | None = Query(None, max_length=80),
               sender: str = Query("[Broker name], [Agency]", max_length=120),
-              recipient: str = Query("[Carrier account manager]", max_length=120)):
-    data = _guard(service.brief, group_id, compare_to, target)
+              recipient: str = Query("[Employer contact]", max_length=120)):
+    data = _guard(service.brief, group_id, compare_to)
     pdf = service.brief_pdf(data, sender=sender, recipient=recipient)
     name = data["group"]["name"].replace(" ", "-").lower()
     return Response(pdf, media_type="application/pdf",

@@ -104,7 +104,6 @@ export interface Brief {
   group: Analysis["group"];
   breakdown: Analysis["breakdown"];
   benchmark: Analysis["benchmark"];
-  target: string;
   subject: string;
   title: string;
   table: { label: string; amount: number; pct: number }[];
@@ -162,7 +161,7 @@ export const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 
 export const verdictLabel: Record<Verdict, string> = {
-  above_range: "Strong case to push back",
-  above_average: "Room to push back",
+  above_range: "Well above market",
+  above_average: "Above market",
   within: "In line with filings",
 };

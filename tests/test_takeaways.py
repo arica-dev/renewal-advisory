@@ -21,7 +21,7 @@ def test_three_takeaways_quote_the_payload(gid):
     assert f"{bm['group_rate_pct']:.1f}%" in t["fair"]
     assert f"{bm['gap_pct']:.1f} points above" in t["fair"]
     assert f"{best['employer_change_pct']:+.1f}%" in t["do"]
-    assert t["do"].startswith("If the carrier won't lower the rate,")
+    assert t["do"].startswith("Get quotes from other carriers.")
 
 
 def test_linden_reads_as_expected():
@@ -39,7 +39,7 @@ def test_no_feasible_option_names_the_missed_goals():
     do = _by_id(a)["do"]
     assert do.startswith("No plan and contribution mix meets every goal.")
     assert f"{a['options'][0]['employer_change_pct']:+.1f}% against a +5% budget" in do
-    assert do.endswith("Negotiating the rate down is the main lever.")
+    assert do.endswith("Quotes from other carriers are the main lever.")
 
 
 def test_rate_below_carrier_average_does_not_suggest_push_back():
@@ -47,7 +47,7 @@ def test_rate_below_carrier_average_does_not_suggest_push_back():
     a = analysis("grp_30_2", compare_to=top.company)
     assert a["benchmark"]["verdict"] == "within"
     t = _by_id(a)
-    assert "points below" in t["fair"] and "leverage is limited" in t["fair"]
+    assert "points below" in t["fair"] and "unlikely to save much" in t["fair"]
     assert t["do"].startswith("The best option is to")
 
 
@@ -65,6 +65,14 @@ def test_singular_employee_grammar():
 
 def test_summary_headline():
     assert analysis("grp_30_2")["summary"] == (
-        "Push back first: the rate change is 3.6 points above the market.")
+        "Shop it first: the rate change is 3.6 points above the market.")
     assert analysis("grp_30_2", max_deductible=3500)["summary"].endswith(
         "no plan change meets the goals at this rate.")
+
+
+def test_no_negotiation_language():
+    for gid in SAMPLES:
+        for kw in ({}, {"max_deductible": 3500}):
+            a = analysis(gid, **kw)
+            text = " ".join([a["summary"], *(t["text"] for t in a["takeaways"])]).lower()
+            assert "negotiat" not in text and "push back" not in text

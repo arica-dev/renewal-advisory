@@ -17,7 +17,6 @@ function BriefView() {
   const { id } = useParams<{ id: string }>();
   const search = useSearchParams();
   const [compareTo, setCompareTo] = useState(search.get("compare_to") ?? MARKET);
-  const [target, setTarget] = useState("");
   const [sender, setSender] = useState("");
   const [recipient, setRecipient] = useState("");
   const [brief, setBrief] = useState<Brief | null>(null);
@@ -36,18 +35,18 @@ function BriefView() {
     const ctl = new AbortController();
     const t = setTimeout(() => {
       setError(null);
-      api.brief(id, { compare_to: compareTo, target: target.trim() || null }, ctl.signal)
+      api.brief(id, { compare_to: compareTo }, ctl.signal)
         .then(setBrief).catch((e) => { if (!ctl.signal.aborted) setError(String(e.message)); });
     }, 250);
     return () => { clearTimeout(t); ctl.abort(); };
-  }, [id, compareTo, target, attempt]);
+  }, [id, compareTo, attempt]);
 
   if (error) return <ErrorState message={error} onRetry={() => setAttempt((n) => n + 1)} />;
   if (!brief) return <Skeleton className="h-[600px] rounded-[20px]" />;
 
   const from = sender.trim() || "[Broker name], [Agency]";
-  const to = recipient.trim() || `[${brief.group.carrier} account manager]`;
-  const pdfUrl = api.briefPdfUrl(id, { compare_to: compareTo, target: target.trim() || null, sender: from, recipient: to });
+  const to = recipient.trim() || `[${brief.group.name} contact]`;
+  const pdfUrl = api.briefPdfUrl(id, { compare_to: compareTo, sender: from, recipient: to });
 
   const emailText = [
     `Subject: ${brief.subject}`, "", brief.title, "", brief.paragraphs[0]!, "",
@@ -63,11 +62,11 @@ function BriefView() {
   return (
     <>
       <header className="flex flex-col gap-3.5">
-        <Breadcrumbs items={[{ label: "Renewals", href: "/" }, { label: brief.group.name, href: `/groups/${id}` }, { label: "Push-back brief" }]} />
+        <Breadcrumbs items={[{ label: "Renewals", href: "/" }, { label: brief.group.name, href: `/groups/${id}` }, { label: "Client brief" }]} />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-1.5">
-            <h1 className="m-0 text-[34px] font-semibold tracking-tight">Push-back brief</h1>
-            <p className="m-0 text-sm text-ink-2">Drafted from the renewal analysis. Edit the settings; the letter updates.</p>
+            <h1 className="m-0 text-[34px] font-semibold tracking-tight">Client brief</h1>
+            <p className="m-0 text-sm text-ink-2">A renewal summary for the employer, drafted from the analysis. Edit the settings; the letter updates.</p>
           </div>
           <Pill tone="mint">Draft · not sent</Pill>
         </div>
@@ -105,16 +104,13 @@ function BriefView() {
               <input className={field} placeholder="[Broker name], [Agency]" value={sender} onChange={(e) => setSender(e.target.value)} maxLength={120} />
             </label>
             <label className="flex flex-col gap-1.5 text-[13px] text-ink-2">To
-              <input className={field} placeholder={`[${brief.group.carrier} account manager]`} value={recipient} onChange={(e) => setRecipient(e.target.value)} maxLength={120} />
+              <input className={field} placeholder={`[${brief.group.name} contact]`} value={recipient} onChange={(e) => setRecipient(e.target.value)} maxLength={120} />
             </label>
             <label className="flex flex-col gap-1.5 text-[13px] text-ink-2">Benchmark
               <select className={field} value={compareTo} onChange={(e) => setCompareTo(e.target.value)}>
                 <option value={MARKET}>PA market median</option>
                 {filings?.carriers.map((c) => c.company).sort().map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
-            </label>
-            <label className="flex flex-col gap-1.5 text-[13px] text-ink-2">Target rate change
-              <input className={field} placeholder={brief.target} value={target} onChange={(e) => setTarget(e.target.value)} maxLength={80} />
             </label>
           </Card>
           <div className="flex flex-col gap-2.5">

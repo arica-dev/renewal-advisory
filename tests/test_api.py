@@ -57,7 +57,9 @@ def test_brief_json_and_pdf():
     j = client.get("/api/groups/grp_30_2/brief").json()
     assert "14.5%" in j["paragraphs"][1] and "18.0%" in j["paragraphs"][1]
     assert j["subject"].endswith("January 1, 2027")
-    r = client.get("/api/groups/grp_30_2/brief.pdf", params={"sender": "A <b>&", "target": "12%"})
+    assert "quotes from other carriers" in j["paragraphs"][1]
+    assert "Bronze HSA 6000" in j["paragraphs"][2]
+    r = client.get("/api/groups/grp_30_2/brief.pdf", params={"sender": "A <b>&"})
     assert r.status_code == 200 and r.content[:4] == b"%PDF"
 
 

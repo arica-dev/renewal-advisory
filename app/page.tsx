@@ -118,7 +118,7 @@ export default function RenewalsPage() {
                 <div className="hidden text-sm text-ink-2 md:block">{g.carrier}</div>
                 <div className="num text-right text-[15px] font-medium">{signedPct(g.total_pct)}</div>
                 <div className="hidden items-center gap-2 md:flex">
-                  <Pill tone={g.verdict === "within" ? "green" : "amber"}>{g.verdict === "within" ? "In line" : "Push back"}</Pill>
+                  <Pill tone={g.verdict === "within" ? "green" : "amber"}>{g.verdict === "within" ? "In line" : "Shop it"}</Pill>
                   <span className="num text-xs text-ink-2">{pct(g.pure_rate_pct)} vs {pct(g.market_median_pct)}</span>
                 </div>
                 <div className="hidden items-center gap-2 text-[13px] text-ink-2 md:flex">
