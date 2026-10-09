@@ -10,6 +10,11 @@ renewing group it:
 3. **Recommends options** (plan design x employer contribution) that meet the
    employer's budget and a cap on any employee's increase.
 4. **Drafts a client brief** for the employer, as a PDF or email.
+5. **Builds the renewal in Clasp** (Renewal build, `/build`): reads the carrier's
+   renewal packet (PDF or spreadsheet), checks every rate, has a person confirm
+   plan changes, and outputs the Clasp API calls that set up the new plan year
+   and open enrollment. A Django + DRF service in `build_service/`
+   ([details](build_service/README.md)).
 
 Data models mirror [Clasp's API](https://docs.withclasp.com/) field names.
 Independent concept, not affiliated with Clasp. All people, plans and renewal
@@ -42,6 +47,10 @@ projects pointing at the same GitHub repo.
    Name it e.g. `renewal-advisory-api`. Vercel finds the app through
    `[tool.vercel] entrypoint` in `pyproject.toml`. Check
    `https://<api>.vercel.app/api/health` returns `{"ok":true}`.
+   The Renewal Build service (Django) is mounted in the same function at
+   `/api/build`. To read any carrier's packet with Claude, add
+   `ANTHROPIC_API_KEY` (and optionally `ANTHROPIC_MODEL`) to this project's
+   environment variables; check `/api/build/health`.
 2. **Web:** the Next.js project. Settings → Environment Variables → add
    `API_URL` = `https://<api>.vercel.app`, then redeploy. `next.config.ts`
    proxies `/api/*` to it, so the browser never talks to the API directly.

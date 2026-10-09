@@ -61,9 +61,9 @@ export default function RenewalsPage() {
           <input id="search" type="search" placeholder="Search groups" value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="min-h-11 w-60 rounded-xl border border-field bg-surface px-3.5 text-sm" />
-          <button type="button" className={btn.primary} disabled title="Coming soon: upload a carrier renewal PDF">
+          <Link href="/build" className={btn.primary}>
             <Icon name="upload" size={16} /> Upload renewal
-          </button>
+          </Link>
         </div>
       </header>
 

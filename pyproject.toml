@@ -4,12 +4,15 @@ version = "0.1.0"
 description = "Small-group health renewal advisor POC"
 requires-python = ">=3.11"
 # Core deps = what the deployed API needs (Vercel may install from this file).
-dependencies = ["pydantic>=2.6", "fastapi>=0.110", "pdfplumber>=0.11", "reportlab>=4.0"]
+dependencies = ["pydantic>=2.6", "fastapi>=0.110", "pdfplumber>=0.11", "reportlab>=4.0",
+                # Renewal Build service (build_service/), mounted at /api/build
+                "django>=5.1,<6", "djangorestframework>=3.15", "a2wsgi>=1.10", "jsonschema>=4.21",
+                "openpyxl>=3.1", "pypdfium2>=4.30", "anthropic>=0.40"]
 
 [project.optional-dependencies]
 app = ["streamlit>=1.35", "plotly>=5.20", "pandas>=2.1", "anthropic>=0.40"]
 web = ["uvicorn>=0.30"]
-dev = ["pytest>=8", "reportlab>=4.0", "httpx>=0.27"]
+dev = ["pytest>=8", "pytest-django>=4.8", "reportlab>=4.0", "httpx>=0.27"]
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -19,8 +22,9 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
-testpaths = ["tests"]
+pythonpath = ["src", "build_service"]
+testpaths = ["tests", "build_service/tests"]
+DJANGO_SETTINGS_MODULE = "buildsvc.settings"
 
 # Vercel API project (Framework Preset: FastAPI) serves this app.
 [tool.vercel]

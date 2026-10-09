@@ -6,6 +6,7 @@ import { Icon, type IconName } from "./Icon";
 
 const NAV: { href: string; label: string; icon: IconName; match: (p: string) => boolean; badge?: string }[] = [
   { href: "/", label: "Renewals", icon: "renew", match: (p) => p === "/" || (p.startsWith("/groups") && !p.endsWith("/brief")), badge: "3" },
+  { href: "/build", label: "Renewal build", icon: "build", match: (p) => p.startsWith("/build") },
   { href: "/filings", label: "Rate filings", icon: "chart", match: (p) => p.startsWith("/filings") },
   { href: "/groups/grp_30_2/brief", label: "Briefs", icon: "doc", match: (p) => p.endsWith("/brief") },
 ];

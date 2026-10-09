@@ -2,6 +2,10 @@
 
 Local:   uvicorn api.index:app --reload --port 8000
 Vercel:  deployed as a Python serverless function; Next.js rewrites /api/* here.
+
+/api/build/* is the Renewal Build service, a separate Django project in
+build_service/. It runs on its own (python build_service/manage.py runserver)
+and is mounted here as a WSGI app so the demo deploys as one function.
 """
 
 import sys
@@ -15,6 +19,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from renewal_advisor import service  # noqa: E402
 
 app = FastAPI(title="Renewal Advisor API", docs_url="/api/docs", openapi_url="/api/openapi.json")
+
+
+def _mount_build_service() -> None:
+    from a2wsgi import WSGIMiddleware
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "build_service"))
+    from buildsvc.wsgi import application
+
+    app.mount("/api/build", WSGIMiddleware(application))
+
+
+_mount_build_service()
 
 
 def _guard(fn, *args, **kwargs):

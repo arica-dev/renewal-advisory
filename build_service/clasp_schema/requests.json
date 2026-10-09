@@ -1,0 +1,109 @@
+{
+  "$comment": "Request-body schemas for the Clasp endpoints Renewal Build writes to, transcribed from Clasp's public API reference (docs.withclasp.com, API version 2026-04-24) on 2026-10-09. Read-only fields are left out, as clients don't send them. additionalProperties is false so a misspelled field fails here instead of at Clasp. Swap in the full published schema (/schemas/2026-04-24/schema.yaml) for production.",
+  "version": "2026-04-24",
+  "operations": {
+    "plan_create": {
+      "method": "POST",
+      "path": "/plans",
+      "doc": "https://docs.withclasp.com/api-reference/plans/post-plans.md",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "plan_name": {"type": "string", "minLength": 1},
+          "plan_type": {"type": "string"},
+          "line_of_coverage": {"enum": ["accident", "accidental_death", "cancer", "commuter_parking", "commuter_transit", "dental", "dependent_care_fsa", "employee_assistance_program", "healthcare_fsa", "hospital_indemnity", "hsa", "legal_services", "life", "limited_purpose_fsa", "long_term_disability", "lump_sum_disability", "medical", "pet_insurance", "short_term_disability", "supplemental", "telemedicine", "vision", "voluntary_critical_illness", "voluntary_life", "voluntary_accidental_death", "voluntary_long_term_disability", "voluntary_ltd", "voluntary_short_term_disability"]},
+          "group": {"type": "string"},
+          "effective_start": {"type": "string", "format": "date"},
+          "effective_end": {"type": "string", "format": "date"},
+          "requires_primary_care_provider": {"type": "boolean"},
+          "plan_details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "label": {"type": "string"},
+                "tooltip": {"type": ["string", "null"]},
+                "info_lines": {"type": "array", "items": {"type": "string"}}
+              }
+            }
+          },
+          "premium_type": {"enum": ["age_banded", "composite"]},
+          "hsa_eligible": {"type": "boolean"}
+        }
+      }
+    },
+    "plan_premiums_create": {
+      "method": "POST",
+      "path": "/plans/{public_id}/premiums",
+      "doc": "https://docs.withclasp.com/api-reference/plans/post-plan-premiums.md",
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["amount"],
+          "properties": {
+            "coverage_type": {"enum": ["member", "member_spouse", "member_child", "member_children", "member_family", null]},
+            "tobacco_usage": {"type": ["boolean", "null"]},
+            "relationship_category": {"enum": ["member", "spouse", "child", null]},
+            "age": {"type": ["string", "null"], "pattern": "^\\d{0,2}$"},
+            "amount": {"type": "string", "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"}
+          }
+        }
+      }
+    },
+    "plan_configuration_create": {
+      "method": "POST",
+      "path": "/plan_configurations",
+      "doc": "https://docs.withclasp.com/api-reference/plan_configurations/post-plan-configurations.md",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["plan", "waiting_period"],
+        "properties": {
+          "plan": {"type": "string"},
+          "waiting_period": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["policy", "period", "duration", "allow_coinciding_start"],
+            "properties": {
+              "policy": {"enum": ["end_of_waiting_period", "first_of_month"]},
+              "period": {"enum": ["day", "month"]},
+              "duration": {"type": "integer", "minimum": 0},
+              "allow_coinciding_start": {"type": "boolean"}
+            }
+          },
+          "required_subclass": {"type": ["string", "null"]},
+          "dependent_age_limit": {"type": ["integer", "null"]},
+          "dependent_age_out_rule": {"enum": ["end_of_month", "end_of_year", "date_of_birth", null]},
+          "base_plan_configuration": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "open_enrollment_window_create": {
+      "method": "POST",
+      "path": "/open_enrollment_windows",
+      "doc": "https://docs.withclasp.com/api-reference/open_enrollment_windows/post-open-enrollment-windows.md",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["employer", "start_date", "end_date"],
+        "properties": {
+          "employer": {"type": "string"},
+          "start_date": {"type": "string", "format": "date"},
+          "end_date": {"type": "string", "format": "date"},
+          "plans": {"type": "array", "items": {"type": "string"}},
+          "enrollment_type": {"enum": ["active", "passive"]},
+          "metadata": {
+            "type": "object",
+            "maxProperties": 50,
+            "propertyNames": {"maxLength": 40},
+            "additionalProperties": {"type": "string", "maxLength": 500}
+          }
+        }
+      }
+    }
+  }
+}

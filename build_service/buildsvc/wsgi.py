@@ -1,0 +1,11 @@
+"""WSGI entry point. Also mounted inside the FastAPI app at /api/build (api/index.py)."""
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "buildsvc.settings")
+
+from django.core.wsgi import get_wsgi_application  # noqa: E402
+
+application = get_wsgi_application()
