@@ -16,7 +16,9 @@ import io
 
 from django.conf import settings
 
-from .money import ExtractionError
+from .money import ExtractionError, money, parse_date
+
+MONEY_FIELDS = ("deductible", "oop_max", "current_rate_21", "renewal_rate_21")
 
 SOURCE = {
     "type": "object",
@@ -93,6 +95,43 @@ def _xlsx_as_text(data: bytes) -> str:
     return "\n".join(out)
 
 
+def normalize(raw: dict) -> dict:
+    """Models write numbers the way documents print them ("$1,500", "6,000.00").
+    Convert them to plain decimals before validation; a field that isn't a
+    number at all is dropped rather than guessed, and the checks then flag
+    anything that's missing."""
+    out = dict(raw)
+    try:
+        out["effective_date"] = parse_date(raw.get("effective_date")).isoformat()
+    except ExtractionError:
+        pass
+    plans = []
+    for plan in raw.get("plans") or []:
+        plan = dict(plan)
+        for field in MONEY_FIELDS:
+            value = plan.get(field)
+            if value in (None, ""):
+                plan.pop(field, None)
+                continue
+            try:
+                plan[field] = str(money(value))
+            except ExtractionError:
+                plan.pop(field, None)
+        plan["status"] = str(plan.get("status") or "renews").strip().lower()
+        rates = []
+        for r in plan.get("rates") or []:
+            try:
+                rates.append({**r, "label": str(r.get("label", "")).strip(), "amount": str(money(r.get("amount")))})
+            except ExtractionError:
+                continue  # unreadable amount: the missing-age check will catch the gap
+        plan["rates"] = rates
+        plans.append(plan)
+    out["plans"] = plans
+    if out.get("state"):
+        out["state"] = str(out["state"]).strip()[:2].upper()
+    return out
+
+
 def extract(data: bytes, fmt: str, client=None) -> tuple[dict, str]:
     """Returns (raw packet dict, model). `client` is injectable for tests."""
     if client is None:
@@ -112,4 +151,4 @@ def extract(data: bytes, fmt: str, client=None) -> tuple[dict, str]:
     block = next((b for b in msg.content if getattr(b, "type", None) == "tool_use"), None)
     if block is None:
         raise ExtractionError("Claude did not return a packet")
-    return dict(block.input), model
+    return normalize(dict(block.input)), model

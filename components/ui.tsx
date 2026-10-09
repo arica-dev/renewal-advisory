@@ -45,11 +45,11 @@ export const btn = {
 
 export const field = "min-h-11 w-full rounded-xl border border-field bg-surface px-3 text-sm text-ink";
 
-export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+export function ErrorState({ message, onRetry, hint = true }: { message: string; onRetry?: () => void; hint?: boolean }) {
   return (
     <Card className="flex flex-col items-start gap-3 p-6" role="alert">
       <p className="m-0 font-semibold">Couldn't load this.</p>
-      <p className="m-0 text-sm text-ink-2">{message}. Is the API running (<code className="num">npm run api</code>)?</p>
+      <p className="m-0 text-sm text-ink-2">{message}{hint ? <>. Is the API running (<code className="num">npm run api</code>)?</> : null}</p>
       {onRetry && <button type="button" className={btn.secondary} onClick={onRetry}>Try again</button>}
     </Card>
   );

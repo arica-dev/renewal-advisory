@@ -50,7 +50,7 @@ export default function BuildPacketPage() {
             <p className="m-0 font-semibold">{error}.</p>
             <Link href="/build" className={btn.secondary}>Back to Renewal build</Link>
           </Card>
-        ) : <ErrorState message={error} onRetry={() => setAttempt((n) => n + 1)} />
+        ) : <ErrorState message={error} hint={false} onRetry={() => setAttempt((n) => n + 1)} />
       ) : result ? <BuildReview result={result} /> : (
         <div className="flex flex-col gap-4" aria-busy="true">
           <p className="m-0 text-sm text-ink-2" role="status">

@@ -198,3 +198,25 @@ def test_unknown_layout_without_claude_explains_what_is_needed(monkeypatch):
     c.save()
     with pytest.raises(ex.ExtractionError, match="ANTHROPIC_API_KEY"):
         process(buf.getvalue(), "other.pdf", method="auto")
+
+
+def test_claude_output_with_printed_formatting_is_normalized():
+    """Models copy numbers as printed ("$1,500", "$473.38"); that must not fail validation."""
+    data, name = packet_bytes("grp_30_2")
+    raw = parse_pdf(data)
+    for plan in raw["plans"]:
+        plan.pop("sources", None)
+        plan["deductible"] = f"${Decimal(plan['deductible']):,.0f}"
+        plan["oop_max"] = f"${Decimal(plan['oop_max']):,.2f}"
+        plan["current_rate_21"] = "$" + plan["current_rate_21"]
+        plan["status"] = plan["status"].capitalize()
+        for r in plan["rates"]:
+            r["amount"] = f"${Decimal(r['amount']):,.2f}"
+            r["source"] = {"page": r["source"]["page"], "text": r["source"]["text"]}
+    raw["effective_date"] = "01/01/2027"
+    fake = SimpleNamespace(messages=SimpleNamespace(
+        create=lambda **kw: SimpleNamespace(content=[SimpleNamespace(type="tool_use", input=raw)])))
+    result = process(data, name, method="claude", client=fake)
+    assert result["packet"]["plans"][0]["deductible"] == "1500.00"
+    assert result["packet"]["effective_date"] == "2027-01-01"
+    assert {f["kind"] for f in result["checks"] if f["severity"] == "blocker"} == {"age_curve"}
