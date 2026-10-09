@@ -30,9 +30,11 @@ export interface Check {
 export interface ClaspContext {
   group_id: string; employer_name: string; state: string; plan_year_start: string; renewal_date: string;
   enrolled: number;
+  contribution?: Contribution & { strategy_type: string };
   plans: { id: string; plan_name: string; metal_level: string | null; deductible: string; oop_max: string;
            base_rate_21: string; enrolled: number }[];
 }
+export interface Contribution { employee_only_pct: string; dependent_pct: string }
 export interface Preview {
   current_monthly: number; renewal_monthly: number; total_pct: number; aging_pct: number;
   rate_pct: number; pure_rate_pct: number; rates_21: Record<string, string>; advisor_url: string;
@@ -43,7 +45,7 @@ export interface Sheet { name: string; rows: { cell: string; value: string | nul
 
 export interface Extraction {
   filename: string; format: "pdf" | "xlsx";
-  extractor: { method: "layout" | "claude"; model: string | null };
+  extractor: { method: "layout" | "claude"; model: string | null; cached?: boolean; fallback?: string };
   packet: Packet; context: ClaspContext | null; checks: Check[]; preview: Preview | null;
   open_enrollment: OpenEnrollment; pages: PageImage[]; sheets: Sheet[];
 }
@@ -95,8 +97,8 @@ export const buildApi = {
     fd.append("method", method);
     return call<Extraction>("/api/build/extract", { method: "POST", body: fd });
   },
-  generate: (packet: Packet, kept: string[], open_enrollment: OpenEnrollment) =>
-    call<BuildOutput>("/api/build/requests", json({ packet, kept, open_enrollment })),
+  generate: (packet: Packet, kept: string[], open_enrollment: OpenEnrollment, contribution?: Contribution) =>
+    call<BuildOutput>("/api/build/requests", json({ packet, kept, open_enrollment, contribution })),
 };
 
 export const usd = (s: string | number | null | undefined) =>

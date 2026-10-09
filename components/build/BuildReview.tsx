@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { signedPct } from "@/lib/api";
 import {
   ApiError, buildApi, shortDate, usd, usd0,
-  type BuildOutput, type Check, type Extraction, type OpenEnrollment, type Packet, type Rate,
+  type BuildOutput, type Check, type Contribution, type Extraction, type OpenEnrollment, type Packet, type Rate,
 } from "@/lib/build";
 import { Icon } from "@/components/Icon";
 import { Card, Pill, btn, field } from "@/components/ui";
@@ -55,12 +55,16 @@ function actionsFor(c: Check): { fix?: string; keep?: string } {
   }
 }
 
-export function BuildReview({ result }: { result: Extraction }) {
+export function BuildReview({ result, actions }: { result: Extraction; actions?: React.ReactNode }) {
   const [applied, setApplied] = useState<Set<string>>(new Set());
   const [kept, setKept] = useState<Set<string>>(new Set());
   const [activeKey, setActiveKey] = useState(result.packet.plans[0]?.key ?? "");
   const [selected, setSelected] = useState<string | null>(null);
   const [oe, setOe] = useState<OpenEnrollment>(result.open_enrollment);
+  const [contribution, setContribution] = useState<Contribution>({
+    employee_only_pct: result.context?.contribution?.employee_only_pct ?? "70.00",
+    dependent_pct: result.context?.contribution?.dependent_pct ?? "70.00",
+  });
   const [output, setOutput] = useState<BuildOutput | null>(null);
   const [busy, setBusy] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
@@ -94,7 +98,7 @@ export function BuildReview({ result }: { result: Extraction }) {
     setBusy(true);
     setGenError(null);
     try {
-      setOutput(await buildApi.generate(packet, [...kept], oe));
+      setOutput(await buildApi.generate(packet, [...kept], oe, contribution));
     } catch (e) {
       const err = e as ApiError;
       const unresolved = (err.data as { unresolved?: Check[] } | null)?.unresolved;
@@ -107,7 +111,7 @@ export function BuildReview({ result }: { result: Extraction }) {
   const clasp = (id?: string) => ctx?.plans.find((p) => p.id === id);
   const rate21 = (rates: Rate[]) => rates.find((r) => r.label === "21")?.amount;
   const extractedBy = result.extractor.method === "claude"
-    ? `Claude (${result.extractor.model})` : "the built-in parser";
+    ? `Claude (${result.extractor.model})${result.extractor.cached ? ", cached" : ""}` : "the built-in parser";
 
   return (
     <>
@@ -122,10 +126,16 @@ export function BuildReview({ result }: { result: Extraction }) {
             {ctx && <> · {ctx.enrolled} enrolled in Clasp</>}
           </p>
         </div>
-        <Pill tone={open.length ? "amber" : "green"} className="text-[13px]">
-          {open.length ? `${open.length} to resolve before building` : "Ready to build"}
-        </Pill>
+        <div className="flex flex-wrap items-center gap-3">
+          {actions}
+          <Pill tone={open.length ? "amber" : "green"} className="text-[13px]">
+            {open.length ? `${open.length} to resolve before building` : "Ready to build"}
+          </Pill>
+        </div>
       </header>
+      {result.extractor.fallback && (
+        <p role="status" className="m-0 rounded-xl bg-amber-soft px-4 py-2.5 text-[13px] text-amber">{result.extractor.fallback}</p>
+      )}
 
       {/* 1. Resolve */}
       <Card className="flex flex-col gap-4 p-5 md:p-6" aria-labelledby="resolve">
@@ -301,6 +311,25 @@ export function BuildReview({ result }: { result: Extraction }) {
                 </select>
               </label>
             </div>
+            <fieldset className="m-0 flex flex-col gap-2 rounded-xl border border-line px-4 py-3">
+              <legend className="px-1 text-[13px] font-semibold text-ink">Employer contribution</legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {([["employee_only_pct", "Employee-only coverage"], ["dependent_pct", "Coverage with dependents"]] as const).map(([k, label]) => (
+                  <label key={k} className="flex flex-col gap-1.5 text-[13px] font-medium text-ink-2">{label}
+                    <span className="flex items-center gap-2">
+                      <input type="number" min={0} max={100} step={5} className={`${field} num max-w-28`}
+                        value={contribution[k] === "" ? "" : Number(contribution[k])}
+                        onChange={(e) => { setContribution({ ...contribution, [k]: e.target.value }); touch(); }} />
+                      <span className="text-sm text-ink-2">% paid by the employer</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <p className="m-0 text-xs text-ink-3">
+                Carried forward from the group&apos;s current split in Clasp. Change it if the employer chose a
+                different split in the Renewal Advisor; payroll deductions follow this.
+              </p>
+            </fieldset>
             <div className="flex flex-wrap items-center gap-3">
               <button type="button" className={btn.primary} disabled={busy || open.length > 0} onClick={generate}>
                 {busy ? "Generating…" : "Generate Clasp requests"}

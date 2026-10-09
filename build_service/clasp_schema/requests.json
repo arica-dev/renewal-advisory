@@ -10,27 +10,92 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "plan_name": {"type": "string", "minLength": 1},
-          "plan_type": {"type": "string"},
-          "line_of_coverage": {"enum": ["accident", "accidental_death", "cancer", "commuter_parking", "commuter_transit", "dental", "dependent_care_fsa", "employee_assistance_program", "healthcare_fsa", "hospital_indemnity", "hsa", "legal_services", "life", "limited_purpose_fsa", "long_term_disability", "lump_sum_disability", "medical", "pet_insurance", "short_term_disability", "supplemental", "telemedicine", "vision", "voluntary_critical_illness", "voluntary_life", "voluntary_accidental_death", "voluntary_long_term_disability", "voluntary_ltd", "voluntary_short_term_disability"]},
-          "group": {"type": "string"},
-          "effective_start": {"type": "string", "format": "date"},
-          "effective_end": {"type": "string", "format": "date"},
-          "requires_primary_care_provider": {"type": "boolean"},
+          "plan_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "plan_type": {
+            "type": "string"
+          },
+          "line_of_coverage": {
+            "enum": [
+              "accident",
+              "accidental_death",
+              "cancer",
+              "commuter_parking",
+              "commuter_transit",
+              "dental",
+              "dependent_care_fsa",
+              "employee_assistance_program",
+              "healthcare_fsa",
+              "hospital_indemnity",
+              "hsa",
+              "legal_services",
+              "life",
+              "limited_purpose_fsa",
+              "long_term_disability",
+              "lump_sum_disability",
+              "medical",
+              "pet_insurance",
+              "short_term_disability",
+              "supplemental",
+              "telemedicine",
+              "vision",
+              "voluntary_critical_illness",
+              "voluntary_life",
+              "voluntary_accidental_death",
+              "voluntary_long_term_disability",
+              "voluntary_ltd",
+              "voluntary_short_term_disability"
+            ]
+          },
+          "group": {
+            "type": "string"
+          },
+          "effective_start": {
+            "type": "string",
+            "format": "date"
+          },
+          "effective_end": {
+            "type": "string",
+            "format": "date"
+          },
+          "requires_primary_care_provider": {
+            "type": "boolean"
+          },
           "plan_details": {
             "type": "array",
             "items": {
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "label": {"type": "string"},
-                "tooltip": {"type": ["string", "null"]},
-                "info_lines": {"type": "array", "items": {"type": "string"}}
+                "label": {
+                  "type": "string"
+                },
+                "tooltip": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "info_lines": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
-          "premium_type": {"enum": ["age_banded", "composite"]},
-          "hsa_eligible": {"type": "boolean"}
+          "premium_type": {
+            "enum": [
+              "age_banded",
+              "composite"
+            ]
+          },
+          "hsa_eligible": {
+            "type": "boolean"
+          }
         }
       }
     },
@@ -43,13 +108,45 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["amount"],
+          "required": [
+            "amount"
+          ],
           "properties": {
-            "coverage_type": {"enum": ["member", "member_spouse", "member_child", "member_children", "member_family", null]},
-            "tobacco_usage": {"type": ["boolean", "null"]},
-            "relationship_category": {"enum": ["member", "spouse", "child", null]},
-            "age": {"type": ["string", "null"], "pattern": "^\\d{0,2}$"},
-            "amount": {"type": "string", "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"}
+            "coverage_type": {
+              "enum": [
+                "member",
+                "member_spouse",
+                "member_child",
+                "member_children",
+                "member_family",
+                null
+              ]
+            },
+            "tobacco_usage": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "relationship_category": {
+              "enum": [
+                "member",
+                "spouse",
+                "child",
+                null
+              ]
+            },
+            "age": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^\\d{0,2}$"
+            },
+            "amount": {
+              "type": "string",
+              "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+            }
           }
         }
       }
@@ -61,24 +158,71 @@
       "schema": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["plan", "waiting_period"],
+        "required": [
+          "plan",
+          "waiting_period"
+        ],
         "properties": {
-          "plan": {"type": "string"},
+          "plan": {
+            "type": "string"
+          },
           "waiting_period": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["policy", "period", "duration", "allow_coinciding_start"],
+            "required": [
+              "policy",
+              "period",
+              "duration",
+              "allow_coinciding_start"
+            ],
             "properties": {
-              "policy": {"enum": ["end_of_waiting_period", "first_of_month"]},
-              "period": {"enum": ["day", "month"]},
-              "duration": {"type": "integer", "minimum": 0},
-              "allow_coinciding_start": {"type": "boolean"}
+              "policy": {
+                "enum": [
+                  "end_of_waiting_period",
+                  "first_of_month"
+                ]
+              },
+              "period": {
+                "enum": [
+                  "day",
+                  "month"
+                ]
+              },
+              "duration": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "allow_coinciding_start": {
+                "type": "boolean"
+              }
             }
           },
-          "required_subclass": {"type": ["string", "null"]},
-          "dependent_age_limit": {"type": ["integer", "null"]},
-          "dependent_age_out_rule": {"enum": ["end_of_month", "end_of_year", "date_of_birth", null]},
-          "base_plan_configuration": {"type": ["string", "null"]}
+          "required_subclass": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dependent_age_limit": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "dependent_age_out_rule": {
+            "enum": [
+              "end_of_month",
+              "end_of_year",
+              "date_of_birth",
+              null
+            ]
+          },
+          "base_plan_configuration": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       }
     },
@@ -89,18 +233,288 @@
       "schema": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["employer", "start_date", "end_date"],
+        "required": [
+          "employer",
+          "start_date",
+          "end_date"
+        ],
         "properties": {
-          "employer": {"type": "string"},
-          "start_date": {"type": "string", "format": "date"},
-          "end_date": {"type": "string", "format": "date"},
-          "plans": {"type": "array", "items": {"type": "string"}},
-          "enrollment_type": {"enum": ["active", "passive"]},
+          "employer": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "plans": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enrollment_type": {
+            "enum": [
+              "active",
+              "passive"
+            ]
+          },
           "metadata": {
             "type": "object",
             "maxProperties": 50,
-            "propertyNames": {"maxLength": 40},
-            "additionalProperties": {"type": "string", "maxLength": 500}
+            "propertyNames": {
+              "maxLength": 40
+            },
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 500
+            }
+          }
+        }
+      }
+    },
+    "plan_configuration_contribution_strategy_create": {
+      "method": "POST",
+      "path": "/plan_configurations/{public_id}/contribution_strategy",
+      "doc": "https://docs.withclasp.com/api-reference/plan_configurations/2026-04-24/post-plan-configurations-contribution_strategy.md",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "strategy_type",
+          "employer_contribution"
+        ],
+        "properties": {
+          "strategy_type": {
+            "enum": [
+              "benefit_split",
+              "retirement_match_policy"
+            ]
+          },
+          "employer_contribution": {
+            "type": "object"
+          }
+        },
+        "if": {
+          "properties": {
+            "strategy_type": {
+              "const": "benefit_split"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "employer_contribution": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "member",
+                "member_spouse",
+                "member_child",
+                "member_children",
+                "member_family"
+              ],
+              "properties": {
+                "member": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "contribution",
+                    "contribution_type"
+                  ],
+                  "properties": {
+                    "contribution": {
+                      "type": "string",
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    },
+                    "contribution_type": {
+                      "enum": [
+                        "member_cost",
+                        "employer_cost",
+                        "employer_percentage",
+                        "flat_employer_cost",
+                        "flat_employer_percentage",
+                        "employer_match",
+                        "member_income_percentage"
+                      ]
+                    },
+                    "monthly_min_threshold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    },
+                    "monthly_max_threshold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    }
+                  }
+                },
+                "member_spouse": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "contribution",
+                    "contribution_type"
+                  ],
+                  "properties": {
+                    "contribution": {
+                      "type": "string",
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    },
+                    "contribution_type": {
+                      "enum": [
+                        "member_cost",
+                        "employer_cost",
+                        "employer_percentage",
+                        "flat_employer_cost",
+                        "flat_employer_percentage",
+                        "employer_match",
+                        "member_income_percentage"
+                      ]
+                    },
+                    "monthly_min_threshold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    },
+                    "monthly_max_threshold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    }
+                  }
+                },
+                "member_child": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "contribution",
+                    "contribution_type"
+                  ],
+                  "properties": {
+                    "contribution": {
+                      "type": "string",
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    },
+                    "contribution_type": {
+                      "enum": [
+                        "member_cost",
+                        "employer_cost",
+                        "employer_percentage",
+                        "flat_employer_cost",
+                        "flat_employer_percentage",
+                        "employer_match",
+                        "member_income_percentage"
+                      ]
+                    },
+                    "monthly_min_threshold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    },
+                    "monthly_max_threshold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    }
+                  }
+                },
+                "member_children": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "contribution",
+                    "contribution_type"
+                  ],
+                  "properties": {
+                    "contribution": {
+                      "type": "string",
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    },
+                    "contribution_type": {
+                      "enum": [
+                        "member_cost",
+                        "employer_cost",
+                        "employer_percentage",
+                        "flat_employer_cost",
+                        "flat_employer_percentage",
+                        "employer_match",
+                        "member_income_percentage"
+                      ]
+                    },
+                    "monthly_min_threshold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    },
+                    "monthly_max_threshold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    }
+                  }
+                },
+                "member_family": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "contribution",
+                    "contribution_type"
+                  ],
+                  "properties": {
+                    "contribution": {
+                      "type": "string",
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    },
+                    "contribution_type": {
+                      "enum": [
+                        "member_cost",
+                        "employer_cost",
+                        "employer_percentage",
+                        "flat_employer_cost",
+                        "flat_employer_percentage",
+                        "employer_match",
+                        "member_income_percentage"
+                      ]
+                    },
+                    "monthly_min_threshold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    },
+                    "monthly_max_threshold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?\\d{0,8}(?:\\.\\d{0,2})?$"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

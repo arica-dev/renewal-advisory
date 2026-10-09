@@ -6,7 +6,8 @@ then validated by a DRF serializer, and every value is checked back against
 the document by extract.ground() before anyone sees it. A rate Claude reports
 that can't be found where it says it is gets flagged, not trusted.
 
-Needs ANTHROPIC_API_KEY. Set ANTHROPIC_MODEL to choose the model.
+Needs ANTHROPIC_API_KEY. Set ANTHROPIC_MODEL to choose the model and
+CLAUDE_TIMEOUT_SECONDS to cap how long a read may take (default 45).
 """
 
 from __future__ import annotations
@@ -24,9 +25,7 @@ SOURCE = {
     "type": "object",
     "description": "Where the value is printed. PDFs: page (1-based). Spreadsheets: sheet and cell (e.g. B12).",
     "properties": {"page": {"type": "integer"}, "sheet": {"type": "string"},
-                   "cell": {"type": "string"},
-                   "text": {"type": "string", "description": "The value exactly as printed, e.g. '$802.29'"}},
-    "required": ["text"],
+                   "cell": {"type": "string"}},
 }
 
 TOOL = {
@@ -73,8 +72,8 @@ INSTRUCTIONS = (
     "record_renewal_packet tool. Rules:\n"
     "- Copy numbers exactly as printed. Never correct, round or infer a value; if a rate looks "
     "wrong, record it as printed (separate checks catch errors).\n"
-    "- Include every row of every age-banded rate table, with the page (or sheet and cell) and the "
-    "printed text for each rate.\n"
+    "- Include every row of every age-banded rate table, with the page (or sheet and cell) of each "
+    "rate. Keep each rate entry minimal: label, amount and source only.\n"
     "- Status: renews (same plan), renamed (new name, same benefits), replaced (discontinued and "
     "mapped to a successor), modified (benefits change), discontinued (no successor), new.\n"
     "- If a value isn't in the document, leave it out rather than guessing."
@@ -137,7 +136,7 @@ def extract(data: bytes, fmt: str, client=None) -> tuple[dict, str]:
     if client is None:
         import anthropic
 
-        client = anthropic.Anthropic()
+        client = anthropic.Anthropic(timeout=settings.CLAUDE_TIMEOUT_SECONDS, max_retries=0)
     if fmt == "pdf":
         doc = {"type": "document", "source": {"type": "base64", "media_type": "application/pdf",
                                               "data": base64.b64encode(data).decode()}}

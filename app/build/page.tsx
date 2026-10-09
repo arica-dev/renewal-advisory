@@ -77,11 +77,11 @@ export default function BuildPage() {
           <Card className="overflow-hidden rounded-2xl" aria-label="Packets waiting">
             <div className="flex items-center justify-between border-b border-line px-5 py-4">
               <h2 className="m-0 text-base font-semibold">Packets waiting</h2>
-              <span className="text-[13px] text-ink-3">Samples · fictional carrier and rates</span>
+              <span className="text-[13px] text-ink-3">Samples · fictional · open instantly</span>
             </div>
             {!samples && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="m-5 h-12" />)}
             {samples?.map((s) => (
-              <Link key={s.id} href={`/build/${s.id}?method=${method}`}
+              <Link key={s.id} href={`/build/${s.id}?method=layout`}
                 className="grid grid-cols-[auto_1fr_auto] items-center gap-4 border-b border-line-2 px-5 py-4 text-ink no-underline transition-colors last:border-b-0 hover:bg-tint">
                 <div className="flex size-9 items-center justify-center rounded-[10px] bg-mint-soft text-[13px] font-bold text-deep">{initials(s.employer)}</div>
                 <div className="flex min-w-0 flex-col gap-1">

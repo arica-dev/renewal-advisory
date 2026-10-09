@@ -89,8 +89,14 @@ class OpenEnrollmentSerializer(serializers.Serializer):
     enrollment_type = serializers.ChoiceField(choices=["passive", "active"], default="passive")
 
 
+class ContributionSerializer(serializers.Serializer):
+    employee_only_pct = serializers.DecimalField(max_digits=5, decimal_places=2, min_value=0, max_value=100)
+    dependent_pct = serializers.DecimalField(max_digits=5, decimal_places=2, min_value=0, max_value=100)
+
+
 class GenerateSerializer(serializers.Serializer):
     packet = PacketSerializer()
+    contribution = ContributionSerializer(required=False)
     kept = serializers.ListField(child=serializers.CharField(max_length=120), required=False, default=list)
     open_enrollment = OpenEnrollmentSerializer()
 

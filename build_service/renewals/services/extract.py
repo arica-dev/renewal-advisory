@@ -12,10 +12,12 @@ if it isn't found.
 from __future__ import annotations
 
 import base64
+import hashlib
 import io
 import os
 import re
 import threading
+from collections import OrderedDict
 
 from .money import ExtractionError, money
 from . import claude_extractor, layout_parser
@@ -38,21 +40,63 @@ def claude_available() -> bool:
     return bool(os.environ.get("ANTHROPIC_API_KEY"))
 
 
+_CLAUDE_CACHE: "OrderedDict[str, dict]" = OrderedDict()
+_CACHE_SIZE = 32
+
+
+def _layout(data: bytes, fmt: str) -> dict:
+    parse = layout_parser.parse_pdf if fmt == "pdf" else layout_parser.parse_xlsx
+    return parse(data)
+
+
 def read(data: bytes, fmt: str, method: str = "auto", client=None) -> tuple[dict, dict]:
-    """Returns (raw packet, extractor info)."""
+    """Returns (raw packet, extractor info).
+
+    Claude reads are cached by file hash (per server instance), so re-opening a
+    packet is instant. If Claude fails or runs past CLAUDE_TIMEOUT_SECONDS and
+    the built-in parser knows the layout, the parser's reading is used instead
+    and the info says so.
+    """
+    from django.conf import settings
+
     if method == "auto":
         method = "claude" if claude_available() else "layout"
     if method == "claude":
         if client is None and not claude_available():
             raise ExtractionError("Reading with Claude needs ANTHROPIC_API_KEY on the server")
-        raw, model = claude_extractor.extract(data, fmt, client=client)
+        key = hashlib.sha256(data).hexdigest() + ":" + settings.ANTHROPIC_MODEL
+        if client is None and key in _CLAUDE_CACHE:
+            _CLAUDE_CACHE.move_to_end(key)
+            raw, model = _CLAUDE_CACHE[key]["raw"], _CLAUDE_CACHE[key]["model"]
+            return _copy(raw), {"method": "claude", "model": model, "cached": True}
+        try:
+            raw, model = claude_extractor.extract(data, fmt, client=client)
+        except Exception as e:  # timeout, rate limit, network, bad output
+            reason = ("Claude didn't finish within "
+                      f"{settings.CLAUDE_TIMEOUT_SECONDS:.0f} seconds" if "timeout" in type(e).__name__.lower()
+                      or "timed out" in str(e).lower() else "Claude couldn't read it")
+            try:
+                parsed = _layout(data, fmt)
+            except ExtractionError:
+                raise ExtractionError(f"{reason}. Try again in a moment.") from e
+            return parsed, {"method": "layout", "model": None,
+                            "fallback": f"{reason}, so the built-in parser read this packet."}
+        if client is None:
+            _CLAUDE_CACHE[key] = {"raw": _copy(raw), "model": model}
+            while len(_CLAUDE_CACHE) > _CACHE_SIZE:
+                _CLAUDE_CACHE.popitem(last=False)
         return raw, {"method": "claude", "model": model}
-    parse = layout_parser.parse_pdf if fmt == "pdf" else layout_parser.parse_xlsx
     try:
-        return parse(data), {"method": "layout", "model": None}
+        return _layout(data, fmt), {"method": "layout", "model": None}
     except ExtractionError as e:
         hint = "" if claude_available() else " Set ANTHROPIC_API_KEY to read other carrier layouts with Claude."
         raise ExtractionError(f"{e}.{hint}") from e
+
+
+def _copy(obj):
+    import copy
+
+    return copy.deepcopy(obj)
 
 
 def _norm_money(text: str) -> str | None:

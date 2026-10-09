@@ -152,4 +152,8 @@ class GenerateRequestsView(APIView):
         run_checks(packet, ctx)  # sets clasp_plan_id on each plan
         oe = {k: (v.isoformat() if hasattr(v, "isoformat") else v)
               for k, v in s.validated_data["open_enrollment"].items()}
-        return Response({**build_requests(packet, ctx, oe), "preview": renewal_preview(packet, ctx)})
+        contribution = s.validated_data.get("contribution")
+        if contribution:
+            contribution = {k: str(v) for k, v in contribution.items()}
+        return Response({**build_requests(packet, ctx, oe, contribution),
+                         "preview": renewal_preview(packet, ctx)})

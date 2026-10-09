@@ -46,3 +46,6 @@ REST_FRAMEWORK = {
 PACKETS_DIR = REPO_ROOT / "data" / "renewal_packets"
 CLASP_API_VERSION = "2026-04-24"
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-5")
+# A demo can't sit on a spinner: past this, fall back to the built-in parser
+# when the layout is one it knows.
+CLAUDE_TIMEOUT_SECONDS = float(os.environ.get("CLAUDE_TIMEOUT_SECONDS", "45"))

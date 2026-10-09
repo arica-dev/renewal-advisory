@@ -29,6 +29,9 @@ python scripts/make_renewal_packets.py                 # regenerate the sample p
 
 Set `ANTHROPIC_API_KEY` to read packets with Claude (and `ANTHROPIC_MODEL` to
 pick the model). Without it, only the sample "Carrier A" layout can be read.
+Claude reads are capped at `CLAUDE_TIMEOUT_SECONDS` (default 45); past that, or
+on any Claude error, a known layout falls back to the built-in parser and the
+page says so. Claude results are cached per server instance by file hash.
 
 ## Layout
 

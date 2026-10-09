@@ -220,3 +220,38 @@ def test_claude_output_with_printed_formatting_is_normalized():
     assert result["packet"]["plans"][0]["deductible"] == "1500.00"
     assert result["packet"]["effective_date"] == "2027-01-01"
     assert {f["kind"] for f in result["checks"] if f["severity"] == "blocker"} == {"age_curve"}
+
+
+def test_contributions_carry_forward_and_can_be_changed(api):
+    result = process(*packet_bytes("grp_30_2"), method="layout")
+    body = _resolved_body(result)
+    out = api.post("/api/build/requests", body, format="json").json()
+    contrib = [q for q in out["requests"] if q["operation"] == "plan_configuration_contribution_strategy_create"]
+    assert len(contrib) == 3 and all(not q["errors"] for q in contrib)
+    split = contrib[0]["body"]["employer_contribution"]
+    assert contrib[0]["body"]["strategy_type"] == "benefit_split"
+    assert split["member"] == {"contribution_type": "employer_percentage", "contribution": "70.00"}
+    assert set(split) == {"member", "member_spouse", "member_child", "member_children", "member_family"}
+    assert contrib[0]["path"].startswith("/plan_configurations/{{plan_configurations.")
+    # The window waits for contributions to be set.
+    window = out["requests"][-1]
+    assert set(q["id"] for q in contrib) <= set(window["depends_on"])
+    body["contribution"] = {"employee_only_pct": "75", "dependent_pct": "50"}
+    out = api.post("/api/build/requests", body, format="json").json()
+    split = next(q for q in out["requests"]
+                 if q["operation"] == "plan_configuration_contribution_strategy_create")["body"]["employer_contribution"]
+    assert split["member"]["contribution"] == "75.00" and split["member_family"]["contribution"] == "50.00"
+
+
+def test_contribution_schema_rejects_the_2023_shape():
+    flat = {"member": {"contribution_type": "employer_percentage", "contribution": "70.00"}}
+    assert validate("plan_configuration_contribution_strategy_create", flat)
+
+
+def test_claude_failure_falls_back_to_the_parser():
+    def boom(**kw):
+        raise TimeoutError("Request timed out")
+    fake = SimpleNamespace(messages=SimpleNamespace(create=boom))
+    result = process(*packet_bytes("grp_30_2"), method="claude", client=fake)
+    assert result["extractor"]["method"] == "layout" and "built-in parser" in result["extractor"]["fallback"]
+    assert {f["kind"] for f in result["checks"] if f["severity"] == "blocker"} == {"age_curve"}
